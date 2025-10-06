@@ -1,0 +1,42 @@
+色の配置について、指定させてください・
+・背景:黒板 rgba(29,84,63,1)
+
+・本文:白 rgba(255,255,255,0.85)
+
+・アクセント（次の3つ全て）:
+黄色 rgba(255,255,146,0.85)
+ピンク rgba(247,171,173,0.85)
+青 rgba(126,203,220,0.85)
+
+フォントについて、これも指定させてください。
+http://localhost:5173/public/software/font/Chalk-JP.otf
+
+mediaの既存置き場は、public/ 以下です。
+public/img
+問題出題時の、問題固有の画像
+file name example)
+id1-1.png
+1d52-3.jpg
+
+public/sfx
+問題出題時の、問題固有の効果音
+ex)
+id4-1.mp3
+1d35-2.wav
+
+public/software
+ソフト側のファイル置き場
+
+public/software/font
+フォント置き場
+
+public/software/img
+ボタンとか背景とかの素材画像
+
+public/software/music
+参加者にゆったり問題を解いてもらうためのBGM
+
+public/software/sfx
+効果音置き場
+
+それでは、早速実装してみてください。

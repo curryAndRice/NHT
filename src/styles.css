@@ -1,0 +1,366 @@
+
+:root {
+  /* 背景色と本文色 */
+  --background-color: rgba(29, 84, 63, 1);      /* 黒板色 */
+  --text-color:       rgba(255, 255, 255, 0.85); /* 白色（85%不透明） */
+  /* アクセントカラー */
+  --accent-yellow: rgba(255, 255, 146, 0.85);
+  --accent-pink:   rgba(247, 171, 173, 0.85);
+  --accent-blue:   rgba(126, 203, 220, 0.85);
+}
+@font-face {
+  font-family: 'ChalkJP'; 
+  src: url('/public/software/font/Chalk-JP.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+#root {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: 'ChalkJP', sans-serif;
+  /* 背景に黒板画像を設定（パスは public/software/img/blackboard.png） */
+  /* background-image: url('/public/software/img/blackboard.png'); */
+  background-size: contain;
+  background-attachment:fixed
+}
+
+body{
+  margin: 0 0;
+  background-color: var(--background-color);
+}
+
+h1 {
+  margin-top: 0;
+}
+
+__white {
+  color:var(--text-color) ;
+}
+
+.admin-info{
+  margin-bottom: 0;
+}
+
+.accent-yellow {
+  color: var(--accent-yellow);
+}
+.accent-pink {
+  color: var(--accent-pink);
+}
+.accent-blue {
+  color: var(--accent-blue);
+}
+
+/* ボタンや強調テキストなどでアクセントカラーを利用 */
+.button-yellow {
+  background-color: var(--accent-yellow);
+  color: var(--background-color);
+}
+
+.title__banner{
+  margin-top: -5%;
+  width: 100%;
+}
+
+.title__description-blue-underbar{
+  color: var(--accent-blue);
+  text-decoration: underline;
+  font-size: 2rem;
+}
+.title__property{
+  display: flex;
+  width: 100%;
+}
+
+.title__property-diff{
+  margin: 0;
+  color: var(--accent-pink);
+  font-size: 2rem;
+}
+
+.title__property-price-text{
+  margin: 0;
+  color: var(--accent-yellow);
+  font-size: 2rem;
+}
+
+.title__property-chikuwa{
+  margin: 0;
+}
+
+.title__property-price-img{
+  width: 30%;
+  height: 30%;
+}
+
+/* tutorial layout: 5 columns */
+.tutorial {
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  gap: 12px;
+  width: 100%;
+  align-items: start;
+  box-sizing: border-box;
+}
+
+/* column */
+.tutorial__col {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 10px;
+  border-radius: 8px;
+  min-width: 140px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* name at top-right */
+.tutorial__name {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+}
+
+/* need-participant badge */
+.tutorial__status--need {
+  color: rgba(255, 255, 146, 0.95); /* accent yellow */
+  font-weight: 700;
+  text-align: center;
+  padding: 18px 6px;
+  border-radius: 6px;
+}
+
+/* choices (2x2 grid like quiz) */
+.tutorial__choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+/* single choice box */
+.tutorial__choice {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 8px;
+  text-align: right;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* pressed state */
+.tutorial__choice--pressed {
+  background: rgba(126, 203, 220, 0.18); /* accent blue light */
+  box-shadow: 0 0 0 2px rgba(126, 203, 220, 0.12) inset;
+}
+
+/* letter and physical key */
+.tutorial__choice-letter {
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1rem;
+}
+
+.tutorial__choice-key {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* hint text */
+.tutorial__hint {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+
+.scoreboard {
+  display: inline-flex;
+  /* gap: 16px; */
+  align-items: center;
+  justify-content: flex-end;
+  background: #000;
+  color: rgba(255,255,255,0.85);
+  padding-left:0;
+  min-height: 32px;
+  box-sizing: border-box;
+  border-radius: 0 0 0 20px;
+  position: fixed;
+  top: -1rem;
+  right: 0;
+  white-space: nowrap;
+}
+
+.scoreboard li{
+  list-style:none;
+}
+
+.scoreboard--name {
+  display: block;
+  text-align: right;
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  color: inherit;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scoreboard--score {
+  display: block;
+  text-align: right;
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.95);
+  min-width: 64px;
+}
+
+.scoreboard--hint-used {
+  display: block;
+  text-align: right;
+  margin: 6px 0 0 0;
+  font-size: 0.8rem;
+  color: rgba(247,171,173,0.85);
+  min-width: 88px;
+}
+
+.quiz-screen{
+  padding: 2rem;
+}
+
+.quiz-screen--index{
+  padding: 0.2rem;
+  font-size:1.5rem;
+}
+
+.quiz-screen--id{
+  font-style: italic;
+}
+
+.quiz-screen--section{
+  font-style: italic;
+}
+
+.quiz-screen--problem-statement{
+  font-size: 3rem;
+  margin: 1rem;
+}
+
+
+.quiz-screen--option {
+  position: relative;
+  overflow: hidden;
+  /* 見た目の基本調整は既存のスタイルに合わせてください */
+  /* border-radius: 8px; */
+  box-sizing: border-box;
+}
+
+.quiz-screen--option-statement{
+  font-weight: 700;
+  font-size: 2rem;
+}
+
+.quiz-screen--option-participant{
+  margin-top: 8 ;
+}
+
+.quiz-screen--option-iscorrect{
+  margin-top: 8 ;
+  font-size: 1rem ;
+}
+
+.quiz-screen--hint-title{
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+
+.quiz-screen--hint-statement{
+  color: var(--accent-blue);
+  font-size: 2rem;
+}
+
+
+
+/* コンテンツを overlay の下に置く */
+.quiz-screen--option-content {
+  position: relative;
+  z-index: 1;
+  padding: 12px;
+  background: rgba(0,0,0,0.12); /* 必要なら下地を付ける */
+}
+
+/* overlay 要素（画像を引き伸ばす） */
+.quiz-screen--option-overlay {
+  position: absolute;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; と同等 */
+  z-index: 2;
+  pointer-events: none;
+  background-image: url('/public/software/img/correctFrame.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 110% 110%; /* 縦横比を無視して引き延ばす */
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* 正解時のみ表示 */
+.quiz-screen--option-overlay.is-visible {
+  opacity: 1;
+}
+
+.quiz-screen--explanation {
+  font-size: 3rem;
+}
+
+.score-intermediate{
+  font-size: 3rem;
+}
+
+.hint-used{
+  color: grey;
+}
+
+.hint-not-used{
+  color: red;
+}
+
+/*background right down -> bgrd*/
+/* 矩形コンテナ（ボーダーはここに） */
+.bgrd--decor{
+  --bgrd-angle: -60deg;                 /* 回転角（固定） */
+  --bgrd-box-w: clamp(180px, 30vw, 360px); /* 表示矩形（幅） */
+  --bgrd-box-h: calc(var(--bgrd-box-w)*1.2);  /* 高さ（見た目で調整） */
+  --bgrd-img-mult: 2;                 /* 画像幅 = --box-w * --img-mult（回転ではみ出さないように） */
+  --gap-right: 0;
+  --gap-bottom: 0;
+
+  position: fixed;
+  right: var(--gap-right);
+  bottom: var(--gap-bottom);
+  width: var(--bgrd-box-w);
+  height: var(--bgrd-box-h);
+  overflow: hidden;                 /* ここで矩形に切り抜く */
+  pointer-events: none;
+}
+/*8bit装飾*/
+.bgrd--decor img.bgrd{
+  position: absolute;
+  left: 80%;
+  top: 70%;
+  transform-origin: center center; /* 画像中心が回転中心 */
+  /* 中央に合わせてから回転 */
+  transform: translate(-50%, -50%) rotate(var(--bgrd-angle));
+  /* 回転で足りなくならないよう幅はコンテナ幅の倍率で調整 */
+  width: calc(var(--bgrd-box-w) * var(--bgrd-img-mult));
+  height: auto;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  max-width: none;
+}
