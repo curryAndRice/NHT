@@ -61,6 +61,25 @@ export const get_isExistCorrect = (playersOpt: Record<number, string | null>, an
   return isExistCorrect
 }
 
+const getAnsweredNumber = (answers:  Record<number, string | null>) : number => {
+  let answeredNumber = 0
+  for (let i=0; i < Object.keys(answers).length; i++){
+    if (answers[i] !== null){
+      answeredNumber+=1
+    }
+  }
+  return answeredNumber
+}
+
+export const isHintSuitable = (hintShown: boolean, answers: Record<number, string | null>, activePlayers: boolean[]) : boolean =>{
+  if (hintShown) return true
+  const answered = getAnsweredNumber(answers)
+  const actives = activePlayers.filter((output, index) => {
+    return output==true;
+  }).length;
+  return (answered === actives) || window.confirm('回答者数 < クイズ参加者数 ですが、本当にヒントを表示しますか? (ヒント表示後は使用者以外回答変更不可)')
+}
+
 export function useGame() {
   const ctx = useContext(GameContext)
   if (!ctx) throw new Error('useGame must be used within GameProvider')

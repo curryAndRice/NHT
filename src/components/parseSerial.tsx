@@ -4,7 +4,7 @@
 // - User must click "Connect" to open the browser port chooser
 // - Default micro:bit baudRate = 115200
 // - This is a single-file React component (default export)
-import { isDebug, useGame } from '../context/GameContext';
+import { isDebug } from '../context/GameContext';
 import React, { useEffect, useRef, useState } from 'react';
 
 // TransformStream 用の行分割ユーティリティ
@@ -22,7 +22,7 @@ class LineBreakTransformer {
   }
 }
 
-function normalizeToPcolonOption(raw: string): string | undefined {
+export function normalizeToPcolonOption(raw: string): string | undefined {
   const s = raw.trim();
   // 許容するパターン: optional "P"/"player", digits, optional separator (colon/comma/space/dash/none), option letter A-D
   const m = s.match(/^(?:P|player)?\s*(\d+)\s*[:,\-\s]?\s*([A-D])$/i);
@@ -33,15 +33,12 @@ function normalizeToPcolonOption(raw: string): string | undefined {
   return `P${playerNum}:${opt}`;
 }
 
-const callButtonFromSerial = (serial: string):void =>{
-  const {setPlayerAnswer} = useGame()
-  const normalized = normalizeToPcolonOption(serial); //serial input -> 'P2:C'
-  const player = Number(normalized?.slice(1,2)) //'P2:C' -> 2
-  const option = normalized?.slice(3,4) //'P2:C' -> 'C'
-  if (player && option) setPlayerAnswer(player, option)
-} 
 
-export default function MicrobitWebSerial(): JSX.Element {
+type Props = {
+  onLine: (line: string) => void;
+};
+
+export default function MicrobitWebSerial({onLine} : Props): JSX.Element {
   const [supported] = useState<boolean>(() => 'serial' in navigator);
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState<string>('未接続');
@@ -113,7 +110,7 @@ export default function MicrobitWebSerial(): JSX.Element {
         if (done) break;
         if (value !== undefined) {
           appendLog(value);
-          callButtonFromSerial(value);
+          onLine(value);
         }
       }
 

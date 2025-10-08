@@ -1,7 +1,7 @@
 import { Screen } from '../reducer/gameReducer'
 import React, { useEffect, useState, useRef } from 'react'
 import { fetchPublicMedia } from '../utils/fetchPublicMedia'
-import { isDebug, get_isExistCorrect } from '../context/GameContext'
+import { isDebug, get_isExistCorrect} from '../context/GameContext'
 import TutorialPanel from './TutorialPanel'
 
 export function renderImage( url :  string ) {
@@ -88,7 +88,13 @@ const ParticipantsTable: typeOfParticipantsTable = function ( players, activePla
   return <ul className='scoreboard'>{Participants}</ul>
 }
 
-export default function ScreenRenderer({ state }: { state: { screen: Screen; questionIndex: number; totalQuestions: number; players: string[]; activePlayers: boolean[]; answers: Record<number, string | null>; correctAnswer: string; hintShown: boolean; hintUser: number | null; hintMessage: string; scores: number[]; prevScores: (number | null)[]; questions: any[]; currentQuestion: any; hintUsed: boolean[]} }) {
+export default function ScreenRenderer({
+  state,
+  isAdmin
+  }: {
+    state: { screen: Screen; questionIndex: number; totalQuestions: number; players: string[]; activePlayers: boolean[]; answers: Record<number, string | null>; correctAnswer: string; hintShown: boolean; hintUser: number | null; hintMessage: string; scores: number[]; prevScores: (number | null)[]; questions: any[]; currentQuestion: any; hintUsed: boolean[]},
+    isAdmin : boolean
+  }) {
   const options = ['A', 'B', 'C', 'D']
   const hintText = 'ヒント: この選択肢のいずれかに注目してください。'
   const explanation = state.currentQuestion?.explanation || '解説: ここに解説文が入ります。'
@@ -115,7 +121,6 @@ export default function ScreenRenderer({ state }: { state: { screen: Screen; que
     <img className="bgrd" src={bgRightDownPath} alt=""/>
   </div>
   )
-
 
   if (state.screen === Screen.TITLE) {
     return (
@@ -193,7 +198,7 @@ export default function ScreenRenderer({ state }: { state: { screen: Screen; que
                   <div key={key} className='quiz-screen--option'>
                     <div className='quiz-screen--option-content'>
                       <div className='quiz-screen--option-statement'>{key} {opt}</div>
-                      {reveal ? 
+                      {(reveal || isAdmin) ? 
                       <>
                         <div className='quiz-screen--option-participant'>{playersForOpt.length ? playersForOpt.join(' ') : <span style={{ color: '#888' }}>回答なし</span>}</div>
                         <div className='quiz-screen--option-iscorrect'>({isCorrect ? '正解' : '不正解'})</div>

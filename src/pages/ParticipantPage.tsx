@@ -7,7 +7,7 @@ export default function ParticipantPage() {
   return (
     <div className="page">
       <div className="page__card">
-        <div className="page__screen-box"><ScreenRenderer state={state} /></div>
+        <div className="page__screen-box"><ScreenRenderer state={state} isAdmin = {false}/></div>
       </div>
       <div className= "accent-pink" >{state.lastMessage}</div>
     </div>

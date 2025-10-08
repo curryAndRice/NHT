@@ -1,10 +1,10 @@
 import React, { useRef, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useGame, playersInitial } from '../context/GameContext'
+import { useGame, playersInitial, isHintSuitable } from '../context/GameContext'
 import ScreenRenderer from '../components/ScreenRenderer'
 import { useKeyHandler } from '../hooks/useKeyHandler'
 import MediaTester from '../components/MediaTester'
-import MicrobitWebSerial from '../hooks/useSerial'
+import MicrobitWebSerial, { normalizeToPcolonOption } from '../components/parseSerial'
 import { parseCsvText } from '../utils/parseCsv'
 
 export const keyMap: Record<string, { player: number; option: string }> = {
@@ -63,8 +63,6 @@ export default function AdminPage() {
 
   useKeyHandler(handleKeyDown, handleKeyUp)
 
-  // Parse answer button input as keyboard input, and dispatch event
-  // connectAndForwardSerial()
 
   const onFile = (file?: File) => {
     if (!file) return
@@ -96,7 +94,7 @@ export default function AdminPage() {
     }
   }
   
-  const HintRequestButton = (participants: boolean[], usedHint: boolean[]): React.JSX.Element => {
+  const HintRequestButton = (participants: boolean[], usedHint: boolean[], hintShown:boolean, answers: Record<number, string | null>): React.JSX.Element => {
     let Buttons: JSX.Element[] = []
     for (let i=0; i<participants.length; i++){
       if (participants[i]){
@@ -106,7 +104,7 @@ export default function AdminPage() {
         )
         }else{
         Buttons.push(
-          <button key={i} onClick={() => requestHint(i)} className='hint-not-used'>{playersInitial[i]}</button>
+          <button key={i} onClick={() => isHintSuitable(hintShown, answers, participants) && requestHint(i)} className='hint-not-used'>{playersInitial[i]}</button>
         )
         }
       }
@@ -118,6 +116,16 @@ export default function AdminPage() {
       </>
     )
   }
+
+  const handleLine = (line: string) => {
+    // normalize をコンポーネント側（フックが使える場所）で実行し、
+    // setPlayerAnswer を安全に呼ぶ
+    const normalized = normalizeToPcolonOption(line);
+    if (!normalized) return;
+    const player = Number(normalized.slice(1, 2))-1;
+    const option = normalized.slice(3, 4);
+    setPlayerAnswer(player, option);
+  };
   
 
   return (
@@ -141,11 +149,11 @@ export default function AdminPage() {
         ) : null}
       </div>
       <div className="microbit-connecter">
-        {MicrobitWebSerial()}
+        <MicrobitWebSerial onLine={handleLine}/>
       </div>
       <div>
         <h3 className='admin-info'>ヒント表示ボタン-1人1回まで</h3>
-        {HintRequestButton(state.activePlayers, state.hintUsed)}
+        {HintRequestButton(state.activePlayers, state.hintUsed, state.hintShown, state.answers)}
       </div>
       <div>
         <h3 className='admin-info'>ヒント</h3>
@@ -164,7 +172,7 @@ export default function AdminPage() {
       </div>
       <div style={{ marginTop: 18, border: 'solid' }}>
         <h3>プレビュー（参加者表示）</h3>
-        <div className="page__preview-box"><ScreenRenderer state={state} /></div>
+        <div className="page__preview-box"><ScreenRenderer state={state} isAdmin={true} /></div>
       </div>
       <div style={{ marginTop: 18 }}>
         <Link to="/" target="_blank" rel="noreferrer">参加者用Document を別タブで開く</Link>
