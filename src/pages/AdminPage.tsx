@@ -4,7 +4,7 @@ import { useGame, playersInitial, isHintSuitable } from '../context/GameContext'
 import ScreenRenderer from '../components/ScreenRenderer'
 import { useKeyHandler } from '../hooks/useKeyHandler'
 import MediaTester from '../components/MediaTester'
-import MicrobitWebSerial, { normalizeToPcolonOption } from '../components/parseSerial'
+import MicrobitWebSerial from '../components/parseSerial'
 import { parseCsvText } from '../utils/parseCsv'
 
 export const keyMap: Record<string, { player: number; option: string }> = {
@@ -51,7 +51,9 @@ export default function AdminPage() {
     const m = keyMap[k]
     if (m) {
       if (state.screen === 'SETUP') { markPlayerActive(m.player) }
-      else if (state.screen === 'QUIZ') { setPlayerAnswer(m.player, m.option) }
+      else if (state.screen === 'QUIZ') {
+        setPlayerAnswer(m.player, m.option)
+      }
     }
     for (let i = 0; i < playerKeys.length; i++) {
       const allDown = playerKeys[i].every((kk) => pressed.current.has(kk))
@@ -117,16 +119,24 @@ export default function AdminPage() {
     )
   }
 
-  const handleLine = (line: string) => {
-    // normalize をコンポーネント側（フックが使える場所）で実行し、
-    // setPlayerAnswer を安全に呼ぶ
-    const normalized = normalizeToPcolonOption(line);
-    if (!normalized) return;
-    const player = Number(normalized.slice(1, 2))-1;
+  const handleLine = useCallback((line: string) => {
+    const normalized = line;
+    // 'P2:C' 形式 -> playerIndex を 0-origin に
+    const playerIndex = Number(normalized.slice(1, 2)) - 1;
     const option = normalized.slice(3, 4);
-    setPlayerAnswer(player, option);
-  };
-  
+    console.log(playerIndex, option)
+    console.log(state.screen, state.ableChange)
+    if (state.screen === 'SETUP') {
+      markPlayerActive(playerIndex);
+      return;
+    }
+
+    if (state.screen === 'QUIZ') {
+      if (state.ableChange[playerIndex]) {
+        setPlayerAnswer(playerIndex, option);
+      }
+    }
+  }, [state.screen, state.ableChange, setPlayerAnswer, markPlayerActive]);
 
   return (
     <div className="page">

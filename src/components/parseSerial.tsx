@@ -22,17 +22,6 @@ class LineBreakTransformer {
   }
 }
 
-export function normalizeToPcolonOption(raw: string): string | undefined {
-  const s = raw.trim();
-  // 許容するパターン: optional "P"/"player", digits, optional separator (colon/comma/space/dash/none), option letter A-D
-  const m = s.match(/^(?:P|player)?\s*(\d+)\s*[:,\-\s]?\s*([A-D])$/i);
-  if (!m) return undefined;
-  const playerNum = parseInt(m[1], 10);
-  const opt = m[2].toUpperCase();
-  if (Number.isNaN(playerNum) || !/^[A-D]$/.test(opt)) return undefined;
-  return `P${playerNum}:${opt}`;
-}
-
 
 type Props = {
   onLine: (line: string) => void;
@@ -43,6 +32,8 @@ export default function MicrobitWebSerial({onLine} : Props): JSX.Element {
   const [connected, setConnected] = useState(false);
   const [status, setStatus] = useState<string>('未接続');
   const [logs, setLogs] = useState<string[]>([]);
+  const onLineRef = useRef<(line: string) => void>(onLine);
+  useEffect(() => { onLineRef.current = onLine; }, [onLine]);
   const portRef = useRef<any | null>(null);
   const readerRef = useRef<ReadableStreamDefaultReader<string> | null>(null);
   const mountedRef = useRef(true);
@@ -111,6 +102,10 @@ export default function MicrobitWebSerial({onLine} : Props): JSX.Element {
         if (value !== undefined) {
           appendLog(value);
           onLine(value);
+          // ここで常に最新の onLine を呼ぶ
+          try { onLineRef.current?.(value); } catch (err) {
+            console.error('onLine handler error', err);
+          }
         }
       }
 
