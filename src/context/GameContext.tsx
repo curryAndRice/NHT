@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
 
-export const isDebug = true
+export const isDebug = false
 
 export enum Screen {
   TITLE = 'TITLE',
@@ -256,6 +256,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     let newCurrentQuestion = currentQuestion
     let newAnswers = answers
     let newActivePlayers = activePlayers
+    let newHintShown = hintShown
     let newAbleChange = ableChange
     let newHintUsed = hintUsed
     let newScores = scores
@@ -263,10 +264,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     switch (screen) {
       case Screen.TITLE:
         next = Screen.SETUP
-        newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); setHintUser(null); setHintMessage(''); updateLastMessage('')
+        newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); updateLastMessage('')
         break
       case Screen.SETUP:
-        newQi = 1; next = Screen.QUIZ; resetAnswers(); setHintShown(false); setHintUser(null); setHintMessage(''); updateLastMessage('')
+        newQi = 1; next = Screen.QUIZ; resetAnswers(); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); updateLastMessage('')
         break
       case Screen.QUIZ:
         computeScoresForJudge(); next = Screen.JUDGE
@@ -275,10 +276,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         next = Screen.SCORES
         break
       case Screen.SCORES:
-        if (questionIndex >= totalQuestions) { next = Screen.RESULT } else { newQi = questionIndex + 1; next = Screen.QUIZ; newAbleChange = resetAbleChange() ; resetAnswers(); setHintShown(false); setHintUser(null); setHintMessage(''); }
+        if (questionIndex >= totalQuestions) { next = Screen.RESULT } else { newQi = questionIndex + 1; next = Screen.QUIZ; newAbleChange = resetAbleChange() ; resetAnswers(); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); }
         break
       case Screen.RESULT:
-        newQi = 0; next = Screen.TITLE; newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); setHintUser(null); setHintMessage(''); updateLastMessage('')
+        newQi = 0; next = Screen.TITLE; newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); updateLastMessage('')
         break
       default:
         next = Screen.TITLE
@@ -292,7 +293,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setCurrentQuestion(newCurrentQuestion)
     }
     // console.log(newPrevScores)
-    broadcastState({ screen: next, questionIndex: newQi, answers: newAnswers, activePlayers: newActivePlayers, hintShown: hintShownRef.current, hintUser, hintMessage, hintUsed: newHintUsed, ableChange: newAbleChange, scores: newScores, prevScores: newPrevScores, lastMessage, questions, currentQuestion: newCurrentQuestion })
+    broadcastState({ screen: next, questionIndex: newQi, answers: newAnswers, activePlayers: newActivePlayers, hintShown: newHintShown, hintUser, hintMessage, hintUsed: newHintUsed, ableChange: newAbleChange, scores: newScores, prevScores: newPrevScores, lastMessage, questions, currentQuestion: newCurrentQuestion })
     
   }
 
