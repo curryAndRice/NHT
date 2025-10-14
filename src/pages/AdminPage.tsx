@@ -38,6 +38,22 @@ const playerKeys: string[][] = [
   ['5','t','g','b'],
 ]
 
+const hintMap: Record<string, { player: number}> = {
+  '6': { player: 0},
+  '7': { player: 1},
+  '8': { player: 2},
+  '9': { player: 3},
+  '0': { player: 4},
+}
+
+const revHintMap: Record<number, string> = {
+  0: '6',
+  1: '7',
+  2: '8',
+  3: '9',
+  4: '0',
+}
+
 
 export default function AdminPage() {
   const { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz} = useGame()
@@ -47,6 +63,12 @@ export default function AdminPage() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const k = e.key.toLowerCase()
     if (k === 'l') { e.preventDefault(); nextScreen(); return }
+
+    const h = hintMap[k]
+    if (h){
+      isHintSuitable(state.hintShown, state.answers, state.activePlayers) && requestHint(h.player)
+    }
+
     pressed.current.add(k)
     const m = keyMap[k]
     if (m) {
@@ -102,11 +124,15 @@ export default function AdminPage() {
       if (participants[i]){
         if (usedHint[i]){
         Buttons.push(
-          <button key={i} onClick={() => requestHint(i)} className='hint-used'>{playersInitial[i]}</button>
+          <button key={i} onClick={() => requestHint(i)} className='hint-used'>
+            {playersInitial[i]}
+          </button>
         )
         }else{
         Buttons.push(
-          <button key={i} onClick={() => isHintSuitable(hintShown, answers, participants) && requestHint(i)} className='hint-not-used'>{playersInitial[i]}</button>
+          <button key={i} onClick={() => isHintSuitable(hintShown, answers, participants) && requestHint(i)} className='hint-not-used'>
+            {playersInitial[i]}<span className='--tutorial-key'>{revHintMap[i]}</span>
+          </button>
         )
         }
       }
@@ -145,7 +171,7 @@ export default function AdminPage() {
         <h2>管理パネル</h2>
         <div>現在の画面: <strong>{state.screen}</strong></div>
         <div>
-          <button onClick={nextScreen} className="page__button">次の画面に進める (l と同じ)</button>
+          <button onClick={nextScreen} className="page__button">次の画面に進める <span className='--tutorial-key'>l</span></button>
           <button onClick={reset} className="page__button" style={{ marginLeft: 8 }}>リセット (結果 {"->"} タイトル)</button>
         </div>
         <div>

@@ -14,6 +14,12 @@
   font-weight: normal;
   font-style: normal;
 }
+
+@font-face {
+  font-family: 'keyTutorial';
+  src: url("public/software/font/KeyboardFont.ttf") format('truetype');
+}
+
 #root {
   background-color: var(--background-color);
   color: var(--text-color);
@@ -49,6 +55,11 @@ __white {
 }
 .accent-blue {
   color: var(--accent-blue);
+}
+
+.--tutorial-key{
+  font-size: 2rem;
+  font-family: 'keyTutorial';
 }
 
 /* ボタンや強調テキストなどでアクセントカラーを利用 */
