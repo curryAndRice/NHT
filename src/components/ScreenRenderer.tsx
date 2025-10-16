@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { fetchPublicMedia } from '../utils/fetchPublicMedia'
 import { Screen, useGame, isDebug, get_isExistCorrect} from '../context/GameContext'
 import TutorialPanel from './TutorialPanel'
-
+import useSound from 'use-sound';
 
 type typeOfParticipantInfo = (
   id:number, player:string, score: number, hintUsed: boolean
@@ -65,6 +65,10 @@ export default function ScreenRenderer({
   const durationRef = useRef<number>(0)
   const firedRef = useRef<boolean>(false)
   const lastRenderedRemRef = useRef<number | null>(null)
+
+  //sound player
+  const [correctPlay, {stop: correctStop}]   = useSound('../../public/software/sfx/correct.mp3');
+  const [incorrectPlay, {stop: incorrectStop}] = useSound('../../public/software/sfx/incorrect.mp3');
 
 
   // Start / stop timer when entering/leaving QUIZ
@@ -230,6 +234,20 @@ export default function ScreenRenderer({
     isExistCorrect = get_isExistCorrect(state.answers, state.currentQuestion.answer)
     const questionImgPath = "/img/id"+ String(state.currentQuestion.id) +"-1.png"
     const answerImgPath = "/img/id"+ String(state.currentQuestion.id) +"-explain.png"
+
+    //参加者用画面において、正誤判定画面のとき、音を1回だけ鳴らす
+    // 1人でも正解していたら正解音を
+    // そうでなければ不正解音を
+    if (state.screen === Screen.JUDGE && !isAdmin){
+      if (isExistCorrect){
+        correctStop() //すでに鳴り始めていたら停止 (二度鳴り防止)
+        correctPlay()
+      }else{
+        incorrectStop() //すでに鳴り始めていたら停止 
+        incorrectPlay()
+      }
+    }
+
     return (
       <div>
         {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
@@ -291,8 +309,6 @@ export default function ScreenRenderer({
                 <img alt="" src={answerImgPath} />
               </div>
             ) : null}
-            {/* { {state.screen === Screen.JUDGE && !(isExistCorrect) && playAudio("/public/software/sfx/incorrect.mp3")} } */}
-            {/* { {state.screen === Screen.JUDGE &&   isExistCorrect  && playAudio("/public/software/sfx/correct.mp3")}} */}
           </div>
         ) : (
           <div>出題可能な問題が見つかりません。</div>
