@@ -1,57 +1,8 @@
-import { Screen } from '../reducer/gameReducer'
 import React, { useEffect, useState, useRef } from 'react'
 import { fetchPublicMedia } from '../utils/fetchPublicMedia'
-import { isDebug, get_isExistCorrect} from '../context/GameContext'
+import { Screen, useGame, isDebug, get_isExistCorrect} from '../context/GameContext'
 import TutorialPanel from './TutorialPanel'
 
-export function renderImage( url :  string ) {
-  const [src, setSrc] = useState<string | null>(null)
-  useEffect(() => {
-    let mounted = true
-    let objectUrl: string | null = null
-    ;(async () => {
-      try {
-        const { blob } = await fetchPublicMedia(url)
-        objectUrl = URL.createObjectURL(blob)
-        if (mounted) setSrc(objectUrl)
-      } catch (e) {
-        console.error('fetch image failed'+url, e)
-      }
-    })()
-    return () => {
-      mounted = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [url])
-  if (!src) return <div>loading image...</div>
-  return <img src={src} alt={url} style={{ maxWidth: '100%' }} />
-}
-
-export function playAudio( url : string ) {
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  useEffect(() => {
-    let objectUrl: string | null = null
-    let cancelled = false
-    ;(async () => {
-      try {
-        const { blob } = await fetchPublicMedia(url)
-        objectUrl = URL.createObjectURL(blob)
-        if (!cancelled && audioRef.current) {
-        audioRef.current.src = objectUrl
-        // optional: autoplay
-        audioRef.current.play().catch(() => {})
-        }
-      } catch (e) {
-        console.error('fetch audio failed', e)
-      }
-    })()
-    return () => {
-      cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [url])
-  return <audio ref={audioRef} />
-}
 
 type typeOfParticipantInfo = (
   id:number, player:string, score: number, hintUsed: boolean
@@ -90,15 +41,120 @@ const ParticipantsTable: typeOfParticipantsTable = function ( players, activePla
 
 export default function ScreenRenderer({
   state,
-  isAdmin
+  isAdmin,
+  nextScreen,
+  getQuizDuration
   }: {
     state: { screen: Screen; questionIndex: number; totalQuestions: number; players: string[]; activePlayers: boolean[]; answers: Record<number, string | null>; correctAnswer: string; hintShown: boolean; hintUser: number | null; hintMessage: string; scores: number[]; prevScores: (number | null)[]; questions: any[]; currentQuestion: any; hintUsed: boolean[]},
-    isAdmin : boolean
+    isAdmin : boolean,
+    nextScreen : () => void,
+    getQuizDuration : () => { duration: number; label: string; },
   }) {
   const options = ['A', 'B', 'C', 'D']
   const hintText = 'ヒント: この選択肢のいずれかに注目してください。'
   const explanation = state.currentQuestion?.explanation || '解説: ここに解説文が入ります。'
   
+  // rendering state
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
+  const [progress, setProgress] = useState<number>(0)
+  const [difficultyLabel, setDifficultyLabel] = useState<string>('')
+
+  // internal refs
+  const rafRef = useRef<number | null>(null)
+  const startRef = useRef<number | null>(null) // performance.now() at start
+  const durationRef = useRef<number>(0)
+  const firedRef = useRef<boolean>(false)
+  const lastRenderedRemRef = useRef<number | null>(null)
+
+
+  // Start / stop timer when entering/leaving QUIZ
+  useEffect(() => {
+    // cleanup any previous raf
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    firedRef.current = false
+    startRef.current = null
+    lastRenderedRemRef.current = null
+    setRemainingSeconds(null)
+    setProgress(0)
+    setDifficultyLabel('')
+
+    if (state.screen !== Screen.QUIZ) return
+
+    const durInfo = getQuizDuration() // { duration, label }
+    durationRef.current = durInfo.duration
+    setDifficultyLabel(durInfo.label || '')
+
+    // initialize
+    startRef.current = performance.now()
+    setRemainingSeconds(Math.ceil(durationRef.current))
+    setProgress(0)
+
+    const tick = (now: number) => {
+      if (startRef.current === null) startRef.current = now
+      const elapsedMs = now - startRef.current
+      const elapsedS = elapsedMs / 1000
+      const remaining = Math.max(0, durationRef.current - elapsedS)
+      const prog = Math.min(1, Math.max(0, elapsedS / durationRef.current))
+
+      const remInt = Math.ceil(remaining)
+      if (lastRenderedRemRef.current !== remInt) {
+        setRemainingSeconds(remInt)
+        lastRenderedRemRef.current = remInt
+      }
+      setProgress(prog)
+
+      if (!firedRef.current && elapsedS >= durationRef.current) {
+        firedRef.current = true
+        // call nextScreen once
+        // try { nextScreen() } catch (e) { /* ignore */ }
+        // stop here; cleanup will cancel raf on effect cleanup
+        return
+      }
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
+      firedRef.current = true
+    }
+    // only depend on screen and quiz question change as exposed via getQuizDuration
+  }, [state.screen, state.currentQuestion, state.hintUser])
+
+  // simple inline styles (can be moved to CSS)
+  const barContainerStyle: React.CSSProperties = {
+    height: 18,
+    background: 'rgba(255,255,255,0.06)',
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '100%',
+    boxSizing: 'border-box',
+  }
+  const barFillStyle: React.CSSProperties = {
+    width: `${Math.round(progress * 100)}%`,
+    height: '100%',
+    background: 'linear-gradient(90deg, rgba(255,255,146,0.95), rgba(126,203,220,0.95))',
+    transition: 'width 120ms linear',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+    color: 'rgba(255,255,255,0.95)',
+    fontSize: 14,
+  }
+
+
   let debugInfo: JSX.Element[] = []
   debugInfo.push(<h3>Debug Info, turn off at /src/context/GameContext.tsx</h3>)
   for (const key of Object.keys(state)){
@@ -179,6 +235,17 @@ export default function ScreenRenderer({
         {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
         {q ? (
           <div className='quiz-screen'>
+            <div className="screen-timer" style={{ width: '100%', maxWidth: 980 }}>
+              <div style={barContainerStyle}>
+                <div style={barFillStyle} />
+              </div>
+              <div style={labelStyle}>
+                <div style={{ fontWeight: 700 }}>{difficultyLabel ? `難易度: ${difficultyLabel}` : ''}</div>
+                <div style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  残り: {remainingSeconds !== null ? `${remainingSeconds}s` : '---'}
+                </div>
+              </div>
+            </div>
             <h3 className='quiz-screen--index'>{state.questionIndex}問目</h3>
             <div className='quiz-screen--id'>問題ID: {q.id}</div>
             <div className='quiz-screen--section'>{q.target}</div>
@@ -224,8 +291,8 @@ export default function ScreenRenderer({
                 <img alt="" src={answerImgPath} />
               </div>
             ) : null}
-            {state.screen === Screen.JUDGE && !(isExistCorrect) && playAudio("/public/software/sfx/incorrect.mp3")}
-            {state.screen === Screen.JUDGE &&   isExistCorrect  && playAudio("/public/software/sfx/correct.mp3")}
+            {/* { {state.screen === Screen.JUDGE && !(isExistCorrect) && playAudio("/public/software/sfx/incorrect.mp3")} } */}
+            {/* { {state.screen === Screen.JUDGE &&   isExistCorrect  && playAudio("/public/software/sfx/correct.mp3")}} */}
           </div>
         ) : (
           <div>出題可能な問題が見つかりません。</div>

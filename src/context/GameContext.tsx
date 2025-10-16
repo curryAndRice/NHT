@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
 
-export const isDebug = false
+export const isDebug = true
 
 export enum Screen {
   TITLE = 'TITLE',
@@ -43,6 +43,7 @@ type GameApi = {
   updateLastMessage: (m: string) => void
   loadQuestions: (qs: Question[]) => void
   getLinksOfQuiz: (qs: Question) => string[]
+  getQuizDuration: () => { duration: number; label: string }
 }
 
 const DEFAULT_TOTAL_QUESTIONS = 11
@@ -78,6 +79,27 @@ export const isHintSuitable = (hintShown: boolean, answers: Record<number, strin
     return output==true;
   }).length;
   return (answered === actives) || window.confirm('回答者数 < クイズ参加者数 ですが、本当にヒントを表示しますか? (ヒント表示後は使用者以外回答変更不可)')
+}
+
+const TARGET_TO_DIFFICULTY: Record<string, 'easy' | 'medium' | 'hard' | 'default'> = {
+  '1〜5問目用': 'easy',
+  '6〜9問目用': 'medium',
+  '10問目用': 'hard',
+  '全問正解者用': 'hard',
+}
+
+const DURATION_BY_DIFFICULTY: Record<'easy' | 'medium' | 'hard' | 'default', number> = {
+  easy: 5,
+  medium: 30,
+  hard: 45,
+  default: 25,
+}
+
+const DIFFICULTY_LABEL: Record<'easy' | 'medium' | 'hard' | 'default', string> = {
+  easy: '簡単',
+  medium: '標準',
+  hard: '難しい',
+  default: '',
 }
 
 export function useGame() {
@@ -306,11 +328,32 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const loadQuestions = (qs: Question[]) => { setQuestions(qs); const q = pickQuestionForIndex(questionIndex || 1); setCurrentQuestion(q); broadcastState({ questions: qs, currentQuestion: q }) }
 
+  const getQuizDuration = (): { duration: number; label: string } => {
+    const q = state.currentQuestion
+    if (!q) return { duration: DURATION_BY_DIFFICULTY.default, label: '' }
+    const t = (q.target ?? '') as string
+    const dif = TARGET_TO_DIFFICULTY[t] ?? 'default'
+    const duration = DURATION_BY_DIFFICULTY[dif] ?? DURATION_BY_DIFFICULTY.default
+    const label = DIFFICULTY_LABEL[dif] ?? ''
+    return { duration, label }
+  }
+
   useEffect(() => { if (questionIndex === 0) { const q = pickQuestionForIndex(1); setCurrentQuestion(q) } }, [])
 
   const state = useMemo(() => ({ screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion }), [screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion ])
 
-  const api: GameApi = { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions, getLinksOfQuiz}
+  const api: GameApi = {
+    state,
+    nextScreen,
+    reset,
+    setPlayerAnswer,
+    markPlayerActive,
+    requestHint,
+    updateLastMessage,
+    loadQuestions,
+    getLinksOfQuiz,
+    getQuizDuration,
+  }
 
   return <GameContext.Provider value={api}>{children}</GameContext.Provider>
 }
