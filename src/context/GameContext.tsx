@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
 
-export const isDebug = true
+export const isDebug = false
 
 export enum Screen {
   TITLE = 'TITLE',

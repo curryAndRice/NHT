@@ -56,13 +56,13 @@ const revHintMap: Record<number, string> = {
 
 
 export default function AdminPage() {
-  const { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz} = useGame()
+  const { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz, getQuizDuration} = useGame()
   const pressed = useRef<Set<string>>(new Set())
   const [csvErrors, setCsvErrors] = useState<string[] | null>(null)
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const k = e.key.toLowerCase()
-    if (k === 'l') { e.preventDefault(); nextScreen(); return }
+    if (k === 'enter' || k ==='l') { e.preventDefault(); nextScreen(); return }
 
     const h = hintMap[k]
     if (h){
@@ -108,7 +108,6 @@ export default function AdminPage() {
 
   let LinksLi: JSX.Element[] = []
   if (state.currentQuestion){
-    console.log(state.currentQuestion)
     for (let l in state.currentQuestion.links){
       LinksLi.push(
         <li key={l}><a href={state.currentQuestion.links[l]}>
@@ -208,7 +207,7 @@ export default function AdminPage() {
       </div>
       <div style={{ marginTop: 18, border: 'solid' }}>
         <h3>プレビュー（参加者表示）</h3>
-        <div className="page__preview-box"><ScreenRenderer state={state} isAdmin={true} /></div>
+        <div className="page__preview-box"><ScreenRenderer state={state} isAdmin={true} nextScreen={nextScreen} getQuizDuration={getQuizDuration}/></div>
       </div>
       <div style={{ marginTop: 18 }}>
         <Link to="/" target="_blank" rel="noreferrer">参加者用Document を別タブで開く</Link>
