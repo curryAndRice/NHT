@@ -89,10 +89,10 @@ const TARGET_TO_DIFFICULTY: Record<string, 'easy' | 'medium' | 'hard' | 'default
 }
 
 const DURATION_BY_DIFFICULTY: Record<'easy' | 'medium' | 'hard' | 'default', number> = {
-  easy: 5,
-  medium: 30,
-  hard: 45,
-  default: 25,
+  easy: 60,
+  medium: 90,
+  hard: 120,
+  default: 75,
 }
 
 const DIFFICULTY_LABEL: Record<'easy' | 'medium' | 'hard' | 'default', string> = {
