@@ -6,6 +6,8 @@ import { useKeyHandler } from '../hooks/useKeyHandler'
 import MediaTester from '../components/MediaTester'
 import MicrobitWebSerial from '../components/parseSerial'
 import { parseCsvText } from '../utils/parseCsv'
+import SoundPlayer from '../components/SoundPlayer'
+import {plays} from '../components/SoundPlayer'
 
 
 export const keyMap: Record<string, { player: number; option: string }> = {
@@ -55,12 +57,28 @@ const revHintMap: Record<number, string> = {
   4: '0',
 }
 
+const soundMap: Record<string, number> = {
+  'u': 0,
+  'i': 1,
+  'o': 2,
+  'p': 3,
+  '@': 4,
+}
+
+export const revSoundMap: Record<number, string> = {
+  0: 'u',
+  1: 'i',
+  2: 'o',
+  3: 'p',
+  4: '@',
+}
 
 export default function AdminPage() {
   const { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz, getQuizDuration} = useGame()
   const pressed = useRef<Set<string>>(new Set())
   const [csvErrors, setCsvErrors] = useState<string[] | null>(null)
 
+  const { soundNames, soundPlay} = plays()
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const k = e.key.toLowerCase()
     if (k === 'enter' || k ==='l') { e.preventDefault(); nextScreen(); return }
@@ -68,6 +86,12 @@ export default function AdminPage() {
     const h = hintMap[k]
     if (h){
       isHintSuitable(state.hintShown, state.answers, state.activePlayers) && requestHint(h.player)
+    }
+
+    const s = soundMap[k]
+    if (typeof s === 'number'){
+      console.log(s)
+      soundPlay[s]()
     }
 
     pressed.current.add(k)
@@ -186,6 +210,9 @@ export default function AdminPage() {
       </div>
       <div className="microbit-connecter">
         <MicrobitWebSerial onLine={handleLine}/>
+      </div>
+      <div>
+        {SoundPlayer()}
       </div>
       <div>
         <h3 className='admin-info'>ヒント表示ボタン-1人1回まで</h3>

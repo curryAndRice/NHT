@@ -174,8 +174,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (typeof s.hintMessage === 'string') setHintMessage(s.hintMessage)
       if (s.hintUsed) setHintUsed(s.hintUsed)
       if (s.ableChange) setAbleChange(s.ableChange)
-      if (s.scores) setScores(s.scores); console.log(s.scores)
-      if (s.prevScores) setPrevScores(s.prevScores); console.log(s.scores)
+      if (s.scores) setScores(s.scores)
+      if (s.prevScores) setPrevScores(s.prevScores)
       if (typeof s.lastMessage === 'string') setLastMessageState(s.lastMessage)
       if (s.questions) setQuestions(s.questions)
       if (s.currentQuestion) setCurrentQuestion(s.currentQuestion)
@@ -205,7 +205,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const target = getTargetForIndex(qi)
     const pool = questions.filter((q) => q.target === target)
     if (pool.length === 0) return null
-    // console.log(pool)
     const idx = Math.floor(Math.random() * pool.length)
     return pool[idx]
   }
@@ -249,7 +248,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     let links:string[] = []
     for (const l in qs.links){
       links.push(l)
-      console.log(l)
     }
     return links
   }
@@ -314,7 +312,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newCurrentQuestion = pickQuestionForIndex(newQi)
       setCurrentQuestion(newCurrentQuestion)
     }
-    // console.log(newPrevScores)
     broadcastState({ screen: next, questionIndex: newQi, answers: newAnswers, activePlayers: newActivePlayers, hintShown: newHintShown, hintUser, hintMessage, hintUsed: newHintUsed, ableChange: newAbleChange, scores: newScores, prevScores: newPrevScores, lastMessage, questions, currentQuestion: newCurrentQuestion })
     
   }
