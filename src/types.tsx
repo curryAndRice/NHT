@@ -20,7 +20,7 @@ export type Player = {
   hintUsed: boolean
 }
 
-export const DEFAULT_PLAYER_NAMES = ['α', 'β', 'θ', 'γ', 'ε'] as const
+export const DEFAULT_PLAYER_NAMES = ['α(アルファ)', 'β(ベータ)', 'γ(ガンマ)', 'δ(デルタ)', 'ε(イプシロン)'] as const
 export type DefaultPlayerName = typeof DEFAULT_PLAYER_NAMES[number]
 
 export type GameQuestions = Question[]

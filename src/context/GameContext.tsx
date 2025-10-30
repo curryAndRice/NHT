@@ -48,7 +48,7 @@ type GameApi = {
 
 const DEFAULT_TOTAL_QUESTIONS = 11
 
-export const playersInitial = ['α','β','γ','δ','ε']
+export const playersInitial = ['α(アルファ)', 'β(ベータ)', 'γ(ガンマ)', 'δ(デルタ)', 'ε(イプシロン)']
 
 const GameContext = createContext<GameApi | null>(null)
 

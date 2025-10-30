@@ -64,7 +64,7 @@ function makeZeroScores(length: number) {
   return Array.from({ length }, () => 0)
 }
 
-export function initialReducerState(playerNames: string[] = ['α', 'β', 'θ', 'γ', 'ε'], totalQuestions = 11, csvQuestions: Question[] = []): GameStateForReducer {
+export function initialReducerState(playerNames: string[] = ['α(アルファ)', 'β(ベータ)', 'γ(ガンマ)', 'δ(デルタ)', 'ε(イプシロン)'], totalQuestions = 11, csvQuestions: Question[] = []): GameStateForReducer {
   return {
     screen: Screen.TITLE,
     questionIndex: 0,
