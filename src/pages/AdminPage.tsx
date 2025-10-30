@@ -8,7 +8,7 @@ import MicrobitWebSerial from '../components/parseSerial'
 import { parseCsvText } from '../utils/parseCsv'
 import SoundPlayer from '../components/SoundPlayer'
 import {plays} from '../components/SoundPlayer'
-
+import { Popup }  from '../components/ObliqueProjector'
 
 export const keyMap: Record<string, { player: number; option: string }> = {
   '1': { player: 0, option: 'A' },
@@ -190,9 +190,11 @@ export default function AdminPage() {
 
   return (
     <div className="page">
-      <h1>運営用Document</h1>
       <div className="page__card">
-        <h2>管理パネル</h2>
+        <div style={{ marginTop: 18, border: 'solid' }}>
+          <h3>プレビュー（参加者表示）</h3>
+          <div className="page__preview-box"><ScreenRenderer state={state} isAdmin={true} nextScreen={nextScreen} getQuizDuration={getQuizDuration}/></div>
+        </div>
         <div>現在の画面: <strong>{state.screen}</strong></div>
         <div>
           <button onClick={nextScreen} className="page__button">次の画面に進める <span className='--tutorial-key'>l</span></button>
@@ -211,6 +213,7 @@ export default function AdminPage() {
       <div className="microbit-connecter">
         <MicrobitWebSerial onLine={handleLine}/>
       </div>
+        <Popup message='114514'/>
       <div>
         {SoundPlayer()}
       </div>
@@ -232,10 +235,6 @@ export default function AdminPage() {
         <ul>
         {LinksLi}
         </ul>
-      </div>
-      <div style={{ marginTop: 18, border: 'solid' }}>
-        <h3>プレビュー（参加者表示）</h3>
-        <div className="page__preview-box"><ScreenRenderer state={state} isAdmin={true} nextScreen={nextScreen} getQuizDuration={getQuizDuration}/></div>
       </div>
       <div style={{ marginTop: 18 }}>
         <Link to="/" target="_blank" rel="noreferrer">参加者用Document を別タブで開く</Link>
