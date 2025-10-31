@@ -86,7 +86,7 @@ export const isHintSuitable = (hintShown: boolean, answers: Record<number, strin
   return (answered === actives) || window.confirm('回答者数 < クイズ参加者数 ですが、本当にヒントを表示しますか? (ヒント表示後は使用者以外回答変更不可)')
 }
 
-const getQuizContinuable = (isAllSolved: boolean[]) : boolean =>{
+export const getQuizContinuable = (isAllSolved: boolean[]) : boolean =>{
   for (let i=0; i < Object.keys(isAllSolved).length; i++){
     if (isAllSolved[i] ===true){
       return true

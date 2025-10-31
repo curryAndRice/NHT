@@ -340,6 +340,19 @@ __white {
   font-size: 3rem;
 }
 
+.score-intermediate--warn1{
+  font-size: 5rem;
+  color: var(--accent-pink);
+}
+
+.score-intermediate--warn2{
+  font-size: 2rem;
+}
+
+.result{
+  font-size: 3rem;
+}
+
 .hint-used{
   color: grey;
 }

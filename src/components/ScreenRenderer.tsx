@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { fetchPublicMedia } from '../utils/fetchPublicMedia'
-import { Screen, useGame, isDebug, get_isExistCorrect} from '../context/GameContext'
+import { Screen, useGame, isDebug, get_isExistCorrect, getQuizContinuable} from '../context/GameContext'
 import TutorialPanel from './TutorialPanel'
 import useSound from 'use-sound';
 
@@ -271,6 +271,8 @@ export default function ScreenRenderer({
             <div className='quiz-screen--section'>{q.target}</div>
             <p className='quiz-screen--problem-statement'>{q.question}</p>
             {!isAdmin ? <img src={questionImgPath} alt="" />:<></> }
+
+            {state.questionIndex <= 10 || isAdmin?<>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
               {q.options.map((opt: string, idx: number) => {
                 const key = ['A','B','C','D'][idx]
@@ -304,6 +306,8 @@ export default function ScreenRenderer({
             ) : (
               <div>ヒントは未表示です</div>
             )}
+            </>:""}
+            
             {state.screen === Screen.JUDGE ? (
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontWeight: 700 }}>解説（ここで表示）</div>
@@ -336,6 +340,18 @@ export default function ScreenRenderer({
             return <div key={p} className="score-intermediate">{p}: {after}点</div>
           })}
         </div>
+        <div style={{ marginTop: 12 }} >
+          {state.questionIndex === 10 && getQuizContinuable(state.isAllSolved)? 
+          <>
+            <p className='score-intermediate--warn1'>{"注意!"}</p>
+            <p className='score-intermediate--warn2'>
+              {"S賞chanceをお持ちのあなたは、ここ10問目で辞退してA賞をもらうことが出来ます。"}
+              {"しかし、ヒント無し・記述式のラスボス、11問目に挑戦することも可能です。もしも11問目正解(全問正解)した場合は、S賞をもらうことが出来ます! "}
+              {"それぞれ、係の人にどちらにするかの旨を伝えてください。"}
+              {"「あなたは、高専生より賢いの?」"}
+            </p>
+          </>:""}
+        </div>
         {DebugInfoDiv}
       </div>
     )
@@ -347,10 +363,10 @@ export default function ScreenRenderer({
         {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         <h3>結果発表</h3>
         <div style={{ marginTop: 12 }}>{state.players.map((p, i) => state.activePlayers[i] ? (
-          <div key={p}>{(() => {
+          <div key={p} className='result'>{(() => {
             const score = state.scores[i]
-            if (score >= 10) return `${p}さんは景品Aを獲得しました!! あなたは高専生より賢いです!!`
-            if (score > 5) return `${p}さんは景品Bを獲得しました!`
+            if (score >= 11) return <p className='accent-pink'>{`${p}さんは景品Sを獲得しました!! あなたは高専生より賢いです!!`}</p>
+            if (score > 5) return `${p}さんは景品Aを獲得しました!`
             return `${p}さんは留年記念おみくじを獲得しました。`
           })()}</div>
         ) : null)}</div>
