@@ -5,7 +5,7 @@ import { revSoundMap } from '../pages/AdminPage';
 export function plays(){
   const [askPlay, {stop: askStop}] = useSound('/software/sfx/出題1.mp3')
   const soundPath = '/software/sfx/';
-  const soundNames = ["出題1.mp3", "和太鼓でドン_boosted.wav", "歓声と拍手1.mp3", "風が吹く2.mp3", "自主規制ピー音.mp3"]
+  const soundNames = ["出題1.mp3", "和太鼓でドン.mp3", "歓声と拍手1.mp3", "風が吹く.mp3", "Explosion07-1(Dry).mp3", "チーン1.mp3"]
   let soundPlay: Function[] = []
   for (let i=0; i<soundNames.length; i++){
     const [play] = useSound(soundPath+soundNames[i])

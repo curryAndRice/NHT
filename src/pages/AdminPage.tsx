@@ -64,6 +64,7 @@ const soundMap: Record<string, number> = {
   'o': 2,
   'p': 3,
   '@': 4,
+  '[': 5,
 }
 
 export const revSoundMap: Record<number, string> = {
@@ -72,6 +73,7 @@ export const revSoundMap: Record<number, string> = {
   2: 'o',
   3: 'p',
   4: '@',
+  5: '[',
 }
 
 export default function AdminPage() {
