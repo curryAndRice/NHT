@@ -4,6 +4,7 @@ import { Screen, useGame, isDebug, get_isExistCorrect} from '../context/GameCont
 import TutorialPanel from './TutorialPanel'
 import useSound from 'use-sound';
 
+
 type typeOfParticipantInfo = (
   id:number, player:string, allSolved: boolean, score: number, hintUsed: boolean
 ) => JSX.Element;

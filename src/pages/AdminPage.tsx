@@ -8,7 +8,8 @@ import MicrobitWebSerial from '../components/parseSerial'
 import { parseCsvText } from '../utils/parseCsv'
 import SoundPlayer from '../components/SoundPlayer'
 import {plays} from '../components/SoundPlayer'
-import { Popup }  from '../components/ObliqueProjector'
+import { onQuizButton } from '../components/AnimatedImageSpawner';
+
 
 export const keyMap: Record<string, { player: number; option: string }> = {
   '1': { player: 0, option: 'A' },
@@ -213,10 +214,10 @@ export default function AdminPage() {
       <div className="microbit-connecter">
         <MicrobitWebSerial onLine={handleLine}/>
       </div>
-        <Popup message='114514'/>
       <div>
         {SoundPlayer()}
       </div>
+      <button onClick={()=>onQuizButton('software/img/300yen.png')}></button>
       <div>
         <h3 className='admin-info'>ヒント表示ボタン-1人1回まで</h3>
         {HintRequestButton(state.activePlayers, state.hintUsed, state.hintShown, state.answers)}

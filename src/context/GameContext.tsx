@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
+import { onQuizButton } from '../components/AnimatedImageSpawner'
 
 export const isDebug = true
 
@@ -32,6 +33,7 @@ type GameState = {
   questions: Question[]
   currentQuestion: Question | null
   isAllSolved: boolean[]
+  emote: number | null
 }
 
 type GameApi = {
@@ -123,6 +125,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [questionIndex, setQuestionIndex] = useState<number>(0)
   const totalQuestions = DEFAULT_TOTAL_QUESTIONS
   const players = useMemo(() => playersInitial, [])
+  const emote = null;
 
   const makeEmptyAnswers = () => {
     const a: Record<number, string | null> = {}
@@ -177,6 +180,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (!data || data.sender === tabIdRef.current) return
     if (data.type === 'STATE') {
       const s = data.payload as Partial<GameState>
+      if (typeof s.emote === 'number') onQuizButton("/software/img/emote"+s.emote+".png")
       if (s.screen) setScreen(s.screen)
       if (typeof s.questionIndex === 'number') setQuestionIndex(s.questionIndex)
       if (s.answers) setAnswers(s.answers)
@@ -233,7 +237,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }
 
   const markPlayerActive = (playerIndex: number) => {
-    setActivePlayers((prev) => { if (prev[playerIndex]) return prev; const next = [...prev]; next[playerIndex] = true; broadcastState({ activePlayers: next }); return next })
+    onQuizButton('software/img/emote'+(playerIndex+1)+'.png'); broadcastState({emote:playerIndex+1});
+    setActivePlayers((prev) => { if (prev[playerIndex]) return prev; const next = [...prev]; next[playerIndex] = true; broadcastState({ activePlayers: next}); return next })
   }
 
   const requestHint = (playerIndex: number) => {
@@ -363,7 +368,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { if (questionIndex === 0) { const q = pickQuestionForIndex(1); setCurrentQuestion(q) } }, [])
 
-  const state = useMemo(() => ({ screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved }), [screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved])
+  const state = useMemo(() => ({ screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved, emote}), [screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved, emote])
 
   const api: GameApi = {
     state,
