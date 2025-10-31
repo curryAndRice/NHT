@@ -223,6 +223,14 @@ __white {
   text-overflow: ellipsis;
 }
 
+.scoreboard--all-solved{
+  display: block;
+  text-align: right;
+  margin: 4px 0 0 0;
+  font-size: 0.7rem;
+  color: var(--text-color);
+}
+
 .scoreboard--score {
   display: block;
   text-align: right;

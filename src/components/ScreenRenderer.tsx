@@ -5,26 +5,27 @@ import TutorialPanel from './TutorialPanel'
 import useSound from 'use-sound';
 
 type typeOfParticipantInfo = (
-  id:number, player:string, score: number, hintUsed: boolean
+  id:number, player:string, allSolved: boolean, score: number, hintUsed: boolean
 ) => JSX.Element;
 
 
 type typeOfParticipantsTable = (
-  players: string[], activePlayers: boolean[], scores: number[], hintUsed: boolean[]
+  players: string[], activePlayers: boolean[], isAllSolved: boolean[], scores: number[], hintUsed: boolean[]
 ) => JSX.Element;
 
-const ParticipantInfo : typeOfParticipantInfo = function (id, player, score, hintUsed){
+const ParticipantInfo : typeOfParticipantInfo = function (id, player, allSolved, score, hintUsed){
 
   return (
     <li key = {id}>
       <h2 className='scoreboard--name'>{player}</h2>
       <p className='scoreboard--score'>{score}点</p>
+      <p className='scoreboard--all-solved'>{allSolved && "S賞chance"}</p>
       <p className='scoreboard--hint-used'>{hintUsed || "ヒント可" }</p>
     </li>
   )
 }
 
-const ParticipantsTable: typeOfParticipantsTable = function ( players, activePlayers, scores, hintUsed ){
+const ParticipantsTable: typeOfParticipantsTable = function ( players, activePlayers, isAllSolved, scores, hintUsed ){
   let isPlayerExist = false
   for(let i = 0; i<activePlayers.length; i++){
     isPlayerExist = isPlayerExist || activePlayers[i]
@@ -33,7 +34,7 @@ const ParticipantsTable: typeOfParticipantsTable = function ( players, activePla
   let Participants :JSX.Element[] = [] 
   for (let i = 0; i<players.length; i++){
     if (activePlayers[i]){
-      Participants.push(ParticipantInfo(i, players[i], scores[i], hintUsed[i]))
+      Participants.push(ParticipantInfo(i, players[i], isAllSolved[i], scores[i], hintUsed[i]))
     }
   }
   return <ul className='scoreboard'>{Participants}</ul>
@@ -45,7 +46,7 @@ export default function ScreenRenderer({
   nextScreen,
   getQuizDuration
   }: {
-    state: { screen: Screen; questionIndex: number; totalQuestions: number; players: string[]; activePlayers: boolean[]; answers: Record<number, string | null>; correctAnswer: string; hintShown: boolean; hintUser: number | null; hintMessage: string; scores: number[]; prevScores: (number | null)[]; questions: any[]; currentQuestion: any; hintUsed: boolean[]},
+    state: { screen: Screen; questionIndex: number; totalQuestions: number; players: string[]; activePlayers: boolean[]; answers: Record<number, string | null>; correctAnswer: string; hintShown: boolean; hintUser: number | null; hintMessage: string; scores: number[]; prevScores: (number | null)[]; questions: any[]; currentQuestion: any; hintUsed: boolean[], isAllSolved: boolean[]},
     isAdmin : boolean,
     nextScreen : () => void,
     getQuizDuration : () => { duration: number; label: string; },
@@ -185,7 +186,7 @@ export default function ScreenRenderer({
   if (state.screen === Screen.TITLE) {
     return (
       <div>
-        {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
+        {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         <img className='title__banner' src="../../public/software/img/AreYouSmarterThan_banner.png"></img>
         <p className='title__description'>
           <span className='title__description-blue-underbar'>現役高専生</span>
@@ -215,7 +216,7 @@ export default function ScreenRenderer({
   if (state.screen === Screen.SETUP) {
     return (
       <div>
-        {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
+        {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         <h3>参加者数の決定 & チュートリアル</h3>
         <p>画面2: 参加する人はこの画面中に（その人に割り当てられた）キーを押してください。</p>
         <div style={{ marginTop: 12 }}>
@@ -250,7 +251,7 @@ export default function ScreenRenderer({
 
     return (
       <div>
-        {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
+        {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         {q ? (
           <div className='quiz-screen'>
             <div className="screen-timer" style={{ width: '100%', maxWidth: 980 }}>
@@ -268,7 +269,7 @@ export default function ScreenRenderer({
             <div className='quiz-screen--id'>問題ID: {q.id}</div>
             <div className='quiz-screen--section'>{q.target}</div>
             <p className='quiz-screen--problem-statement'>{q.question}</p>
-            <img src={questionImgPath} alt="" />
+            {!isAdmin ? <img src={questionImgPath} alt="" />:<></> }
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
               {q.options.map((opt: string, idx: number) => {
                 const key = ['A','B','C','D'][idx]
@@ -306,7 +307,7 @@ export default function ScreenRenderer({
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontWeight: 700 }}>解説（ここで表示）</div>
                 <div className="quiz-screen--explanation">{["0",'A','B','C','D'][state.currentQuestion.answer]} - {explanation}</div>
-                <img alt="" src={answerImgPath} />
+                {!isAdmin ? <img alt="" src={answerImgPath} />:<></> }
               </div>
             ) : null}
           </div>
@@ -321,7 +322,7 @@ export default function ScreenRenderer({
   if (state.screen === Screen.SCORES) {
     return (
       <div>
-        {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
+        {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         <h3>各参加者の得点表示</h3>
         <div style={{ marginTop: 12 }}>
           {state.players.map((p, i) => {
@@ -342,7 +343,7 @@ export default function ScreenRenderer({
   if (state.screen === Screen.RESULT) {
     return (
       <div>
-        {ParticipantsTable(state.players, state.activePlayers, state.scores, state.hintUsed)}
+        {ParticipantsTable(state.players, state.activePlayers, state.isAllSolved, state.scores, state.hintUsed)}
         <h3>結果発表</h3>
         <div style={{ marginTop: 12 }}>{state.players.map((p, i) => state.activePlayers[i] ? (
           <div key={p}>{(() => {

@@ -87,18 +87,7 @@ export default function TutorialPanel(): JSX.Element {
   // helper to produce the hint text per player
   const hintTextFor = (playerIndex: number): string => {
     if (!activePlayers[playerIndex]) return '参加者求ム!'
-    if (completedRef.current[playerIndex]) return 'チュートリアル完了!'
-    const st = stepRef.current[playerIndex]
-    if (st === 0) {
-      const key = playerKeysRows[0][playerIndex]
-      return `${key} を押してみてください（選択肢 A）`
-    }
-    if (st === 1) {
-      const key = playerKeysRows[2][playerIndex]
-      return `${key} を押してみてください（選択肢 C）`
-    }
-    // st === 2
-    return `全てのボタンを1回ずつ押してください（${playerKeysRows.map((r) => r[playerIndex]).join(', ')}）`
+    return '参加登録済み!!!'
   }
 
   return (
@@ -121,16 +110,6 @@ export default function TutorialPanel(): JSX.Element {
             {isActive && (
               <>
                 <div className="tutorial__choices" role={`group`} aria-label={`player-${name}-choices`}>
-                  {optionLetters.map((L, idx) => {
-                    const physKey = playerKeysRows[idx][i]
-                    const pressedClass = pressed.has(L) ? 'tutorial__choice--pressed' : ''
-                    return (
-                      <div key={L} className={`tutorial__choice ${pressedClass}`}>
-                        <div className="tutorial__choice-letter">{L}</div>
-                        <div className="tutorial__choice-key">({physKey})</div>
-                      </div>
-                    )
-                  })}
                 </div>
 
                 <div className="tutorial__hint">

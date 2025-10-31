@@ -2,7 +2,7 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
 
-export const isDebug = false
+export const isDebug = true
 
 export enum Screen {
   TITLE = 'TITLE',
@@ -31,6 +31,7 @@ type GameState = {
   lastMessage: string
   questions: Question[]
   currentQuestion: Question | null
+  isAllSolved: boolean[]
 }
 
 type GameApi = {
@@ -79,6 +80,15 @@ export const isHintSuitable = (hintShown: boolean, answers: Record<number, strin
     return output==true;
   }).length;
   return (answered === actives) || window.confirm('回答者数 < クイズ参加者数 ですが、本当にヒントを表示しますか? (ヒント表示後は使用者以外回答変更不可)')
+}
+
+const getQuizContinuable = (isAllSolved: boolean[]) : boolean =>{
+  for (let i=0; i < Object.keys(isAllSolved).length; i++){
+    if (isAllSolved[i] ===true){
+      return true
+    }
+  }
+  return false
 }
 
 const TARGET_TO_DIFFICULTY: Record<string, 'easy' | 'medium' | 'hard' | 'default'> = {
@@ -139,6 +149,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [lastMessage, setLastMessageState] = useState<string>('')
   const [questions, setQuestions] = useState<Question[]>(() => parseCsvText(dummyCsv).questions)
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
+  const [isAllSolved, setIsAllSolved] = useState<boolean[]>(makeAnswerable)
 
   const answersRef = useRef(answers)
   useEffect(() => { answersRef.current = answers }, [answers])
@@ -156,6 +167,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { prevScoresRef.current = prevScores }, [prevScores])
   const currentQuestionRef = useRef<Question | null>(currentQuestion)
   useEffect(() => { currentQuestionRef.current = currentQuestion }, [currentQuestion])
+  const isAllSolvedRef = useRef<boolean[]>(isAllSolved)
+  useEffect(() => { isAllSolvedRef.current = isAllSolved }, [isAllSolved])
 
   const tabIdRef = useRef<string>('')
   useEffect(() => { tabIdRef.current = Math.random().toString(36).slice(2) }, [])
@@ -179,6 +192,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (typeof s.lastMessage === 'string') setLastMessageState(s.lastMessage)
       if (s.questions) setQuestions(s.questions)
       if (s.currentQuestion) setCurrentQuestion(s.currentQuestion)
+      if (s.isAllSolved) setIsAllSolved(s.isAllSolved)
     }
   }, [])
 
@@ -193,6 +207,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const resetHintUsed = () => { const empty = makeEmptyHintUsed(); setHintUsed(empty); return empty }
   const resetScores = () => { const zeros = makeZeroScores(); setScores(zeros); setPrevScores(players.map(() => null)); return {scores:zeros, prevScores:players.map(() => null)} }
   const resetAbleChange = () => { const able = makeAnswerable(); setAbleChange(able); return able}
+  const resetIsAllSolved = () => { const allSolved = makeAnswerable(); setIsAllSolved(allSolved); return allSolved}
 
   function getTargetForIndex(qi: number) {
     if (qi <= 5) return '1〜5問目用'
@@ -255,19 +270,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const computeScoresForJudge = () => {
     const prev = [...scoresRef.current]
     const next = [...scoresRef.current]
+    const allSolved = [...isAllSolvedRef.current]
     const optMap: Record<string, number> = { A: 1, B: 2, C: 3, D: 4 }
     const q = currentQuestionRef.current
     for (let i = 0; i < players.length; i++) {
-      if (!activeRef.current[i]) continue
+      if (!activeRef.current[i]){
+        allSolved[i] = false
+        continue
+      }
       const ans = answersRef.current[i]
       const ansNum = ans ? optMap[(ans as string).toUpperCase()] ?? NaN : NaN
       if (q && Number.isInteger(q.answer) && Number.isInteger(ansNum) && ansNum === q.answer) {
         next[i] = next[i] + 1
+      }else{
+        allSolved[i] = false
       }
     }
     setPrevScores(prev.map((v) => v))
     setScores(next)
-    broadcastState({ scores: next, prevScores: prev.map((v) => v) })
+    setIsAllSolved(allSolved)
+    broadcastState({ scores: next, prevScores: prev.map((v) => v), isAllSolved: allSolved })
   }
 
   const nextScreen = () => {
@@ -281,6 +303,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     let newHintUsed = hintUsed
     let newScores = scores
     let newPrevScores = prevScores
+    let newIsAllSolved = isAllSolved
     switch (screen) {
       case Screen.TITLE:
         next = Screen.SETUP
@@ -296,10 +319,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         next = Screen.SCORES
         break
       case Screen.SCORES:
-        if (questionIndex >= totalQuestions) { next = Screen.RESULT } else { newQi = questionIndex + 1; next = Screen.QUIZ; newAbleChange = resetAbleChange() ; resetAnswers(); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); }
+        if (questionIndex >= totalQuestions || !getQuizContinuable(isAllSolved)) { next = Screen.RESULT } else { newQi = questionIndex + 1; next = Screen.QUIZ; newAbleChange = resetAbleChange() ; resetAnswers(); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); }
         break
       case Screen.RESULT:
-        newQi = 0; next = Screen.TITLE; newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); updateLastMessage('')
+        newQi = 0; next = Screen.TITLE; newIsAllSolved=resetIsAllSolved(); newActivePlayers=resetActive(); newAnswers=resetAnswers(); newHintUsed=resetHintUsed(); ({scores:newScores,prevScores:newPrevScores}=resetScores()); setHintShown(false); newHintShown=false; setHintUser(null); setHintMessage(''); updateLastMessage('')
         break
       default:
         next = Screen.TITLE
@@ -312,18 +335,21 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       newCurrentQuestion = pickQuestionForIndex(newQi)
       setCurrentQuestion(newCurrentQuestion)
     }
-    broadcastState({ screen: next, questionIndex: newQi, answers: newAnswers, activePlayers: newActivePlayers, hintShown: newHintShown, hintUser, hintMessage, hintUsed: newHintUsed, ableChange: newAbleChange, scores: newScores, prevScores: newPrevScores, lastMessage, questions, currentQuestion: newCurrentQuestion })
+    broadcastState({ screen: next, questionIndex: newQi, answers: newAnswers, activePlayers: newActivePlayers, hintShown: newHintShown, hintUser, hintMessage, hintUsed: newHintUsed, ableChange: newAbleChange, scores: newScores, prevScores: newPrevScores, lastMessage, questions, currentQuestion: newCurrentQuestion, isAllSolved: newIsAllSolved })
     
   }
 
   const reset = () => {
     setScreen(Screen.TITLE); setQuestionIndex(0)
+    const allSolved = resetIsAllSolved();
     const emptyA = makeEmptyAnswers(); const emptyActive = makeEmptyActive(); const emptyHint = makeEmptyHintUsed(); const zeros = makeZeroScores(); const able = makeAnswerable()
     setAnswers(emptyA); setActivePlayers(emptyActive); setHintUsed(emptyHint); setScores(zeros); setPrevScores(players.map(() => null)); setCorrectAnswer('A'); setHintShown(false); setHintUser(null); setHintMessage(''); setAbleChange(able); updateLastMessage('')
-    broadcastState({ screen: Screen.TITLE, questionIndex: 0, answers: emptyA, activePlayers: emptyActive, hintUsed: emptyHint, scores: zeros, prevScores: players.map(() => null), hintShown: false, hintUser: null, hintMessage: '', ableChange: able, lastMessage: '', questions, currentQuestion: null })
+    broadcastState({ screen: Screen.TITLE, questionIndex: 0, answers: emptyA, activePlayers: emptyActive, hintUsed: emptyHint, scores: zeros, prevScores: players.map(() => null), hintShown: false, hintUser: null, hintMessage: '', ableChange: able, lastMessage: '', questions, currentQuestion: null, isAllSolved: allSolved})
   }
 
   const loadQuestions = (qs: Question[]) => { setQuestions(qs); const q = pickQuestionForIndex(questionIndex || 1); setCurrentQuestion(q); broadcastState({ questions: qs, currentQuestion: q }) }
+
+
 
   const getQuizDuration = (): { duration: number; label: string } => {
     const q = state.currentQuestion
@@ -337,7 +363,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { if (questionIndex === 0) { const q = pickQuestionForIndex(1); setCurrentQuestion(q) } }, [])
 
-  const state = useMemo(() => ({ screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion }), [screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion ])
+  const state = useMemo(() => ({ screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved }), [screen, questionIndex, totalQuestions, players, activePlayers, answers, correctAnswer, hintShown, hintUser, hintMessage, hintUsed, ableChange, scores, prevScores, lastMessage, questions, currentQuestion, isAllSolved])
 
   const api: GameApi = {
     state,
