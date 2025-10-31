@@ -2,8 +2,9 @@ import React, { createContext, useContext, useMemo, useRef, useState, useEffect,
 import { parseCsvText, dummyCsv, Question } from '../utils/parseCsv'
 import { useBroadcast } from '../hooks/useBroadcast'
 import { onQuizButton } from '../components/AnimatedImageSpawner'
+import { p } from 'framer-motion/client'
 
-export const isDebug = true
+export const isDebug = false
 
 export enum Screen {
   TITLE = 'TITLE',
@@ -38,6 +39,7 @@ type GameState = {
 
 type GameApi = {
   state: GameState
+  doEmote: (playerIndex: number) => void
   nextScreen: () => void
   reset: () => void
   setPlayerAnswer: (playerIndex: number, option: string) => void
@@ -237,8 +239,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }
 
   const markPlayerActive = (playerIndex: number) => {
-    onQuizButton('software/img/emote'+(playerIndex+1)+'.png'); broadcastState({emote:playerIndex+1});
+    doEmote(playerIndex);
     setActivePlayers((prev) => { if (prev[playerIndex]) return prev; const next = [...prev]; next[playerIndex] = true; broadcastState({ activePlayers: next}); return next })
+  }
+
+  const doEmote = (playerIndex: number): void => {
+    onQuizButton('software/img/emote'+(playerIndex+1)+'.png'); broadcastState({emote:playerIndex+1});
   }
 
   const requestHint = (playerIndex: number) => {
@@ -372,6 +378,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const api: GameApi = {
     state,
+    doEmote,
     nextScreen,
     reset,
     setPlayerAnswer,

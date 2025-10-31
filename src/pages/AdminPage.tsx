@@ -77,7 +77,7 @@ export const revSoundMap: Record<number, string> = {
 }
 
 export default function AdminPage() {
-  const { state, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz, getQuizDuration} = useGame()
+  const { state, doEmote, nextScreen, reset, setPlayerAnswer, markPlayerActive, requestHint, updateLastMessage, loadQuestions , getLinksOfQuiz, getQuizDuration} = useGame()
   const pressed = useRef<Set<string>>(new Set())
   const [csvErrors, setCsvErrors] = useState<string[] | null>(null)
 
@@ -100,9 +100,13 @@ export default function AdminPage() {
     pressed.current.add(k)
     const m = keyMap[k]
     if (m) {
-      if (state.screen === 'SETUP') { markPlayerActive(m.player) }
-      else if (state.screen === 'QUIZ') {
+      console.log(state.screen)
+      if (state.screen === 'SETUP') {
+        markPlayerActive(m.player)
+      }else if (state.screen === 'QUIZ') {
         setPlayerAnswer(m.player, m.option)
+      }else if (state.screen === 'JUDGE' || state.screen === 'SCORES'){
+        doEmote(m.player)
       }
     }
     for (let i = 0; i < playerKeys.length; i++) {
@@ -181,6 +185,11 @@ export default function AdminPage() {
     console.log(state.screen, state.ableChange)
     if (state.screen === 'SETUP') {
       markPlayerActive(playerIndex);
+      return;
+    }
+
+    if (state.screen === 'JUDGE' || state.screen === 'SCORES'){
+      doEmote(playerIndex);
       return;
     }
 
